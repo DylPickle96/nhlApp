@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
-	"os"
+	"io/ioutil"
+	"net/http"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -59,24 +61,24 @@ type teamRecord struct {
 }
 
 func main() {
-	// resp, err := http.Get("http://www.shrpsports.com/nhl/stand.php?link=Y&season=2020&divcnf=div&month=Nov&date=6")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	HTMLFile, err := os.Open("dylan.html")
+	resp, err := http.Get("http://www.shrpsports.com/nhl/stand.php?link=Y&season=2020&divcnf=div&month=Nov&date=6")
 	if err != nil {
 		panic(err)
 	}
-	fileParser(HTMLFile)
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		panic(err)
+	}
+	// HTMLFile, err := os.Open("dylan.html")
+	// if err != nil {
+	// 	panic(err)
+	// }
+	fileParser(body)
 }
 
-func fileParser(HTMLFile *os.File) {
-	// reader := bytes.NewReader(HTMLFile)
-	tokenizer := html.NewTokenizer(HTMLFile)
+func fileParser(HTMLFile []byte) {
+	reader := bytes.NewReader(HTMLFile)
+	tokenizer := html.NewTokenizer(reader)
 	TDCount := 0
 	var tr teamRecord
 	var teamRecords []teamRecord
@@ -131,7 +133,9 @@ func fileParser(HTMLFile *os.File) {
 			break
 		}
 	}
-	// teamRecords = validateData(teamRecords, true)
+	teamRecords = validateData(teamRecords)
+	teamRecords = removeRecord(teamRecords, 0)
+	fmt.Println(len(teamRecords))
 	for _, tr := range teamRecords {
 		fmt.Printf("%+v\n", tr)
 	}
@@ -179,65 +183,55 @@ func includesCity(value string) bool {
 }
 
 // validateData
-func validateData(teamRecords []teamRecord, badData bool) []teamRecord {
-	if badData {
-		for i, tr := range teamRecords {
-			if tr.wins == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-			}
-			if tr.loses == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.overtime == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.ROW == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.points == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.goalsFor == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.goalsAgainst == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.home == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.away == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-
-			}
-			if tr.divisionRecord == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-			}
-			if tr.conferenceRecord == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-			}
-			if tr.icf == "" {
-				teamRecords = removeRecord(teamRecords, i)
-				validateData(teamRecords, true)
-			}
+func validateData(teamRecords []teamRecord) []teamRecord {
+	for i, tr := range teamRecords {
+		if tr.wins == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.loses == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.overtime == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.ROW == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.points == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.goalsFor == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.goalsAgainst == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.home == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.away == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.divisionRecord == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.conferenceRecord == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
+		if tr.icf == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
 		}
 	}
 	return teamRecords
@@ -245,8 +239,8 @@ func validateData(teamRecords []teamRecord, badData bool) []teamRecord {
 
 // removeRecord
 func removeRecord(teamRecords []teamRecord, index int) []teamRecord {
-	// fmt.Println(index)
-	// fmt.Println(teamRecords)
+	// fmt.Println("DEBUG: index: ", index)
+	// fmt.Printf("DEBUG: teamRecord: %+v\n", teamRecords[index])
 	teamRecords = append(teamRecords[:index], teamRecords[index+1:]...)
 	return teamRecords
 }
