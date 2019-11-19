@@ -1,10 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
-	"os"
+	"net/http"
+	"strconv"
 	"strings"
 
 	"golang.org/x/net/html"
@@ -44,6 +47,44 @@ var nhlCities = []string{
 	"Los Angeles",
 }
 
+type monthsRange struct {
+	beginnning int
+	ending     int
+}
+
+var twentyTwentySeason = map[string]map[string]monthsRange{
+	"2020": {
+		"Oct": {
+			beginnning: 2,
+			ending:     31,
+		},
+		"Nov": {
+			beginnning: 1,
+			ending:     19,
+		},
+		"Dec": {
+			beginnning: 0,
+			ending:     0,
+		},
+		"Jan": {
+			beginnning: 0,
+			ending:     0,
+		},
+		"Feb": {
+			beginnning: 0,
+			ending:     0,
+		},
+		"Mar": {
+			beginnning: 0,
+			ending:     0,
+		},
+		"Apr": {
+			beginnning: 0,
+			ending:     0,
+		},
+	},
+}
+
 type dailyRecord struct {
 	TeamRecords []teamRecord `json:"teamRecords"`
 }
@@ -64,25 +105,20 @@ type teamRecord struct {
 }
 
 func main() {
-	// resp, err := http.Get("http://www.shrpsports.com/nhl/stand.php?link=Y&season=2020&divcnf=div&month=Nov&date=6")
-	// if err != nil {
-	// 	panic(err)
-	// }
-	// body, err := ioutil.ReadAll(resp.Body)
-	// if err != nil {
-	// 	panic(err)
-	// }
-	HTMLFile, err := os.Open("dylan.html")
+	err := getSeasonData()
 	if err != nil {
-		panic(err)
+		log.Printf("WARNING: %v", err)
 	}
-	fileParser(HTMLFile)
+	// HTMLFile, err := os.Open("dylan.html")
+	// if err != nil {
+	// 	panic(err)
+	// }
 }
 
 // fileParser main function to handle the parsing of the HTML file which are trying to scrape
-func fileParser(HTMLFile *os.File) {
-	// reader := bytes.NewReader(HTMLFile)
-	tokenizer := html.NewTokenizer(HTMLFile)
+func fileParser(HTMLFile []byte, season, month, day *string) {
+	reader := bytes.NewReader(HTMLFile)
+	tokenizer := html.NewTokenizer(reader)
 	TDCount := 0
 	var tr teamRecord
 	var teamRecords []teamRecord
@@ -142,7 +178,7 @@ func fileParser(HTMLFile *os.File) {
 	// this poor practice but the more important thing here is that it works
 	teamRecords = removeRecord(teamRecords, 0)
 	dailyRecord.TeamRecords = teamRecords
-	writeJSONFile(dailyRecord)
+	writeJSONFile(dailyRecord, season, month, day)
 }
 
 // parsePostion parse position assigns the value for that given position to the coorsponding teamRecord value
@@ -232,12 +268,35 @@ func validateData(teamRecords []teamRecord) []teamRecord {
 	return teamRecords
 }
 
-func writeJSONFile(dailyRecord dailyRecord) {
+func getSeasonData() error {
+	for season, months := range twentyTwentySeason {
+		for month, monthRange := range months {
+			if monthRange.beginnning == 0 {
+				continue
+			}
+			for i := monthRange.beginnning; i <= monthRange.ending; i++ {
+				resp, err := http.Get(fmt.Sprintf("http://www.shrpsports.com/nhl/stand.php?link=Y&season=%s&divcnf=div&month=%s&date=%d", season, month, i))
+				if err != nil {
+					return fmt.Errorf("could not get response from url %s. Error: %v", fmt.Sprintf("http://www.shrpsports.com/nhl/stand.php?link=Y&season=%s&divcnf=div&month=%s&date=%d", season, month, i), err)
+				}
+				body, err := ioutil.ReadAll(resp.Body)
+				if err != nil {
+					return fmt.Errorf("could not read response body from url: %s. Error: %v", fmt.Sprintf("http://www.shrpsports.com/nhl/stand.php?link=Y&season=%s&divcnf=div&month=%s&date=%d", season, month, i), err)
+				}
+				day := strconv.FormatInt(int64(i), 10)
+				fileParser(body, &season, &month, &day)
+			}
+		}
+	}
+	return nil
+}
+
+func writeJSONFile(dailyRecord dailyRecord, season, month, day *string) {
 	JSONBytes, err := json.MarshalIndent(dailyRecord, "", "  ")
 	if err != nil {
 		log.Printf("WARNING: could not marshal slice of teamRecord into JSON. Error: %v", err)
 	}
-	err = ioutil.WriteFile("JSON/test.json", JSONBytes, 0755)
+	err = ioutil.WriteFile(fmt.Sprintf("JSON/%s-%s-%s-record.json", *season, *month, *day), JSONBytes, 0755)
 	if err != nil {
 		log.Printf("WARNING: could not write JSON to file. Error: %v", err)
 	}
