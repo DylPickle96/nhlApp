@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -60,7 +61,7 @@ var twentyTwentySeason = map[string]map[string]monthsRange{
 		},
 		"Nov": {
 			beginnning: 1,
-			ending:     19,
+			ending:     20,
 		},
 		"Dec": {
 			beginnning: 0,
@@ -85,6 +86,39 @@ var twentyTwentySeason = map[string]map[string]monthsRange{
 	},
 }
 
+var twentyNineteenSeason = map[string]map[string]monthsRange{
+	"2019": {
+		"Oct": {
+			beginnning: 3,
+			ending:     31,
+		},
+		"Nov": {
+			beginnning: 1,
+			ending:     30,
+		},
+		"Dec": {
+			beginnning: 1,
+			ending:     31,
+		},
+		"Jan": {
+			beginnning: 1,
+			ending:     31,
+		},
+		"Feb": {
+			beginnning: 1,
+			ending:     28,
+		},
+		"Mar": {
+			beginnning: 1,
+			ending:     31,
+		},
+		"Apr": {
+			beginnning: 1,
+			ending:     6,
+		},
+	},
+}
+
 type dailyRecord struct {
 	TeamRecords []teamRecord `json:"teamRecords"`
 }
@@ -105,7 +139,11 @@ type teamRecord struct {
 }
 
 func main() {
-	err := getSeasonData()
+	err := getSeasonData(twentyTwentySeason)
+	if err != nil {
+		log.Printf("WARNING: %v", err)
+	}
+	err = getSeasonData(twentyNineteenSeason)
 	if err != nil {
 		log.Printf("WARNING: %v", err)
 	}
@@ -268,8 +306,8 @@ func validateData(teamRecords []teamRecord) []teamRecord {
 	return teamRecords
 }
 
-func getSeasonData() error {
-	for season, months := range twentyTwentySeason {
+func getSeasonData(currentSeason map[string]map[string]monthsRange) error {
+	for season, months := range currentSeason {
 		for month, monthRange := range months {
 			if monthRange.beginnning == 0 {
 				continue
@@ -296,7 +334,11 @@ func writeJSONFile(dailyRecord dailyRecord, season, month, day *string) {
 	if err != nil {
 		log.Printf("WARNING: could not marshal slice of teamRecord into JSON. Error: %v", err)
 	}
-	err = ioutil.WriteFile(fmt.Sprintf("JSON/%s-%s-%s-record.json", *season, *month, *day), JSONBytes, 0755)
+	err = os.MkdirAll(fmt.Sprintf("JSON/%s", *season), 0755)
+	if err != nil {
+		log.Fatalf("ERROR: could not make the directory path JSON/%s. Error: %v", *season, err)
+	}
+	err = ioutil.WriteFile(fmt.Sprintf("JSON/%s/%s-%s-%s-record.json", *season, *season, *month, *day), JSONBytes, 0755)
 	if err != nil {
 		log.Printf("WARNING: could not write JSON to file. Error: %v", err)
 	}
