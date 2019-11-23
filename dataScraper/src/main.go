@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -10,7 +11,11 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 	"golang.org/x/net/html"
 )
 
@@ -46,11 +51,6 @@ var nhlCities = []string{
 	"Anaheim",
 	"San Jose",
 	"Los Angeles",
-}
-
-type monthsRange struct {
-	beginnning int
-	ending     int
 }
 
 var twentyTwentySeason = map[string]map[string]monthsRange{
@@ -119,7 +119,21 @@ var twentyNineteenSeason = map[string]map[string]monthsRange{
 	},
 }
 
+// seasonNumericName required as I cannot use numeric value in a collection name...
+var seasonNumericName = map[string]string{
+	"2020": "twentyTwenty",
+	"2019": "twentyNineteen",
+}
+
+type monthsRange struct {
+	beginnning int
+	ending     int
+}
+
 type dailyRecord struct {
+	Season      string       `json:"season"`
+	Month       string       `json:"month"`
+	Day         string       `json:"day"`
 	TeamRecords []teamRecord `json:"teamRecords"`
 }
 type teamRecord struct {
@@ -136,6 +150,24 @@ type teamRecord struct {
 	DivisionRecord   string `json:"divisionRecord"`
 	ConferenceRecord string `json:"conferenceRecord"`
 	ICF              string `json:"ICF"`
+}
+
+var client *mongo.Client
+
+func init() {
+	var err error
+	ctx, cancelFunc := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancelFunc()
+	client, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
+	if err != nil {
+		log.Fatalf("ERROR: Could not connect to the mongo database. Error: %v", err)
+	}
+	ctx, cancelFunc = context.WithTimeout(context.Background(), 2*time.Second)
+	defer cancelFunc()
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		log.Fatalf("ERROR: could not ping the mongo database. Error: %v", err)
+	}
 }
 
 func main() {
@@ -216,7 +248,10 @@ func fileParser(HTMLFile []byte, season, month, day *string) {
 	// this poor practice but the more important thing here is that it works
 	teamRecords = removeRecord(teamRecords, 0)
 	dailyRecord.TeamRecords = teamRecords
-	writeJSONFile(dailyRecord, season, month, day)
+	dailyRecord.Season = *season
+	dailyRecord.Month = *month
+	dailyRecord.Day = *day
+	insertDailyRecord(dailyRecord, season)
 }
 
 // parsePostion parse position assigns the value for that given position to the coorsponding teamRecord value
@@ -306,6 +341,7 @@ func validateData(teamRecords []teamRecord) []teamRecord {
 	return teamRecords
 }
 
+// getSeasonData gets season data from the shrpsports website
 func getSeasonData(currentSeason map[string]map[string]monthsRange) error {
 	for season, months := range currentSeason {
 		for month, monthRange := range months {
@@ -327,6 +363,17 @@ func getSeasonData(currentSeason map[string]map[string]monthsRange) error {
 		}
 	}
 	return nil
+}
+
+// insertDailyRecord insert daily records into the mongoDB collection
+func insertDailyRecord(dailyRecord dailyRecord, season *string) {
+	collection := client.Database("nhlRecords").Collection(seasonNumericName[*season] + "Season")
+	insertRecord, err := collection.InsertOne(context.Background(), dailyRecord)
+	if err != nil {
+		log.Printf("WARNING: could not insert record in collection %s-season.Error: %v", *season, err)
+		return
+	}
+	log.Println("insertRecord ID: ", insertRecord.InsertedID)
 }
 
 func writeJSONFile(dailyRecord dailyRecord, season, month, day *string) {
