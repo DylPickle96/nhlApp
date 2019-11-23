@@ -2,10 +2,12 @@ package main
 
 import (
 	"context"
-	"fmt"
+	"encoding/json"
 	"log"
+	"net/http"
 	"time"
 
+	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson"
 
 	"go.mongodb.org/mongo-driver/mongo"
@@ -35,6 +37,16 @@ type teamRecord struct {
 	ICF              string `json:"ICF"`
 }
 
+// seasonNumericName required as I cannot use numeric value in a collection name...
+var seasonNumericName = map[string]string{
+	"2020": "twentyTwenty",
+	"2019": "twentyNineteen",
+}
+
+type server struct {
+	r *httprouter.Router
+}
+
 var client *mongo.Client
 
 func init() {
@@ -54,12 +66,32 @@ func init() {
 }
 
 func main() {
+	handleRequests()
+}
+
+func getDailyRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var dailyRecord dailyRecord
-	filter := bson.D{{"month", "Oct"}, {"day", "15"}}
-	collection := client.Database("nhlRecords").Collection("twentyNineteenSeason")
+	filter := bson.D{{"month", ps.ByName("month")}, {"day", ps.ByName("day")}}
+	collection := client.Database("nhlRecords").Collection(seasonNumericName[ps.ByName("season")] + "Season")
 	err := collection.FindOne(context.Background(), filter).Decode(&dailyRecord)
 	if err != nil {
-		panic(err)
+		w.WriteHeader(500)
+		w.Write([]byte("could not get record from database"))
+		return
 	}
-	fmt.Printf("%+v\n", dailyRecord)
+	json.NewEncoder(w).Encode(dailyRecord)
+}
+
+func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
+	w.Header().Set("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE")
+	s.r.ServeHTTP(w, r)
+}
+
+func handleRequests() {
+	myRouter := httprouter.New()
+	myRouter.GET("/getdailyrecord/:season/:month/:day", getDailyRecord)
+	log.Println("INFO: Started http listener")
+	log.Fatal(http.ListenAndServe(":8081", &server{myRouter}))
 }
