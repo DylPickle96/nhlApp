@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/julienschmidt/httprouter"
@@ -69,7 +70,7 @@ func main() {
 	handleRequests()
 }
 
-func getDailyRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+func getLeagueRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var dailyRecord dailyRecord
 	filter := bson.D{{"month", ps.ByName("month")}, {"day", ps.ByName("day")}}
 	collection := client.Database("nhlRecords").Collection(seasonNumericName[ps.ByName("season")] + "Season")
@@ -79,6 +80,13 @@ func getDailyRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params
 		w.Write([]byte("could not get record from database"))
 		return
 	}
+	teamRecords, err := bubbleSort(dailyRecord.TeamRecords)
+	if err != nil {
+		w.WriteHeader(500)
+		w.Write([]byte("could not sort records. Error: " + err.Error()))
+		return
+	}
+	dailyRecord.TeamRecords = *teamRecords
 	json.NewEncoder(w).Encode(dailyRecord)
 }
 
@@ -91,7 +99,30 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	myRouter := httprouter.New()
-	myRouter.GET("/getdailyrecord/:season/:month/:day", getDailyRecord)
+	myRouter.GET("/league/:season/:month/:day", getLeagueRecord)
 	log.Println("INFO: Started http listener")
 	log.Fatal(http.ListenAndServe(":8081", &server{myRouter}))
+}
+
+func bubbleSort(teamRecords []teamRecord) (*[]teamRecord, error) {
+	sorting := true
+	for sorting {
+		sorting = false
+		for i := 1; i < len(teamRecords); i++ {
+			previousValue, err := strconv.ParseInt(teamRecords[i-1].Points, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			currentValue, err := strconv.ParseInt(teamRecords[i].Points, 10, 64)
+			if err != nil {
+				return nil, err
+			}
+			// if the previous value is less than the current value swap it. This will sort the slice in descending order.
+			if previousValue < currentValue {
+				teamRecords[i], teamRecords[i-1] = teamRecords[i-1], teamRecords[i]
+				sorting = true
+			}
+		}
+	}
+	return &teamRecords, nil
 }
