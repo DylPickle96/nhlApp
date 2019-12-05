@@ -38,7 +38,7 @@ type teamRecord struct {
 	ICF              string `json:"ICF"`
 }
 
-// seasonNumericName required as I cannot use numeric value in a collection name...
+// seasonNumericName required as I cannot use numeric value in a Mongodb collection name...
 var seasonNumericName = map[string]string{
 	"2020": "twentyTwenty",
 	"2019": "twentyNineteen",
@@ -92,8 +92,8 @@ func getLeagueRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization")
-	w.Header().Set("Access-Control-Allow-Methods", "PUT, POST, GET, DELETE")
+	w.Header().Set("Access-Control-Allow-Headers", "Accept, Content-Type, Content-Length, Accept-Encoding")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, POST")
 	s.r.ServeHTTP(w, r)
 }
 

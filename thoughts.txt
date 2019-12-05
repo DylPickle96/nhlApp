@@ -1,0 +1,21 @@
+Definition of the end goal of this SPA
+
+I want to take advantage of a frontend JS charting framework to plot the change of NHL standings over time
+
+Currently there is no historical way to view standings data of the league, conference, division or even indiviual team data.
+
+API THOUGHTS:
+
+Instead of making a get request with URL params I think I'd be better off making a POST request with a data range and what type of standings they are requesting
+
+
+{
+    "type": "league",
+    "startMonth": "Oct",
+    "StartDay": "4",
+    "endMonth": "Apr",
+    "endDay": "5"
+}
+
+We have to modify our current stored JSON. I do not want to return the whole object as is. Rather append the wins, loses, OT, and points to a date so we can plot them over time.
+
