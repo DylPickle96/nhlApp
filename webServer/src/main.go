@@ -16,6 +16,10 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
+type seasonRecord struct {
+	Season       string        `json:"season"`
+	DailyRecords []dailyRecord `json:"dailyRecords"`
+}
 type dailyRecord struct {
 	Season      string       `json:"season"`
 	Month       string       `json:"month"`
@@ -37,18 +41,113 @@ type teamRecord struct {
 	ConferenceRecord string `json:"conferenceRecord"`
 	ICF              string `json:"ICF"`
 }
-
-// seasonNumericName required as I cannot use numeric value in a Mongodb collection name...
-var seasonNumericName = map[string]string{
-	"2020": "twentyTwenty",
-	"2019": "twentyNineteen",
+type seasons struct {
+	seasons []season
 }
 
+type season struct {
+	name   string
+	months []month
+}
+
+type month struct {
+	name      string
+	beginning int
+	ending    int
+}
+
+// http server interface
 type server struct {
 	r *httprouter.Router
 }
 
-var client *mongo.Client
+var (
+	client     *mongo.Client
+	nhlSeasons = seasons{
+		seasons: []season{
+			season{
+				name: "2020",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 2,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    29,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    11,
+					},
+				},
+			},
+			season{
+				name: "2019",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 3,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    29,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    6,
+					},
+				},
+			},
+		},
+	}
+	// seasonNumericName - required as I cannot use numeric value in a Mongodb collection name...
+	seasonNumericName = map[string]string{
+		"2020": "twentyTwenty",
+		"2019": "twentyNineteen",
+	}
+)
 
 func init() {
 	var err error
@@ -70,25 +169,61 @@ func main() {
 	handleRequests()
 }
 
-// getLeagueRecord - obtains the entire leagues record for a daily in a season
-func getLeagueRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
-	var dailyRecord dailyRecord
-	filter := bson.D{{"month", ps.ByName("month")}, {"day", ps.ByName("day")}}
-	collection := client.Database("nhlRecords").Collection(seasonNumericName[ps.ByName("season")] + "Season")
-	err := collection.FindOne(context.Background(), filter).Decode(&dailyRecord)
-	if err != nil {
-		log.Printf("ERROR: getLeagueRecord(): Cannot get daily league record. Error: %v", err)
-		w.WriteHeader(500)
-		return
-	}
-	teamRecords, err := bubbleSort(dailyRecord.TeamRecords)
+// getDailyLeagueRecord - obtains the entire leagues record for a daily in a season
+func getDailyLeagueRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	dailyRecord, err := retrieveDailyLeagueRecord(ps.ByName("season"), ps.ByName("month"), ps.ByName("day"))
 	if err != nil {
 		w.WriteHeader(500)
 		w.Write([]byte("could not sort records. Error: " + err.Error()))
 		return
 	}
-	dailyRecord.TeamRecords = *teamRecords
 	json.NewEncoder(w).Encode(dailyRecord)
+}
+
+// getSeasonRecord - HTTP interface to return a whole season worth of daily records
+func getSeasonRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
+	sr := seasonRecord{}
+	sr.Season = ps.ByName("season")
+	for _, season := range nhlSeasons.seasons {
+		if season.name == ps.ByName("season") {
+			for _, month := range season.months {
+				for i := month.beginning; i < month.ending; i++ {
+					r, err := retrieveDailyLeagueRecord(season.name, month.name, strconv.FormatInt(int64(i), 10))
+					if err != nil {
+						log.Printf("ERROR: getSeasonRecord(): cannot retrieve daily record for season: %s month: %s. day: %d. Error: %v", season.name, month.name, i, err)
+						w.WriteHeader(500)
+						return
+					}
+					sr.DailyRecords = append(sr.DailyRecords, *r)
+				}
+			}
+		}
+	}
+	err := json.NewEncoder(w).Encode(sr)
+	if err != nil {
+		log.Printf("ERROR: getSeasonRecord(): cannot encode response. Error: %v", err)
+		w.WriteHeader(500)
+		return
+	}
+}
+
+// retrieveDailyLeagueRecord - retrieves daily league record from our mongodb database
+func retrieveDailyLeagueRecord(season, month, day string) (*dailyRecord, error) {
+	dailyRecord := &dailyRecord{}
+	filter := bson.D{{"month", month}, {"day", day}}
+	collection := client.Database("nhlRecords").Collection(seasonNumericName[season] + "Season")
+	err := collection.FindOne(context.Background(), filter).Decode(&dailyRecord)
+	if err != nil {
+		log.Printf("ERROR: retrieveDailyLeagueRecord(): Cannot get daily league record. Error: %v", err)
+		return nil, err
+	}
+	teamRecords, err := bubbleSort(dailyRecord.TeamRecords)
+	if err != nil {
+		log.Printf("ERROR: retrieveDailyLeagueRecord(): issue during bubble sort. Error: %v", err)
+		return nil, err
+	}
+	dailyRecord.TeamRecords = *teamRecords
+	return dailyRecord, nil
 }
 
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -100,7 +235,8 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func handleRequests() {
 	myRouter := httprouter.New()
-	myRouter.GET("/league/:season/:month/:day", getLeagueRecord)
+	myRouter.GET("/daily/:season/:month/:day", getDailyLeagueRecord)
+	myRouter.GET("/season/:season", getSeasonRecord)
 	myRouter.ServeFiles("/webapp/*filepath", http.Dir("../../webApp/v1/"))
 	log.Println("INFO: Started http listener")
 	log.Fatal(http.ListenAndServe(":8081", &server{myRouter}))
