@@ -1,0 +1,14 @@
+{
+  "name": "nhl-app",
+  "version": "1.0.0",
+  "description": "web app to display current and historical nhl standings data overtime",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Dylan Smith",
+  "license": "ISC",
+  "dependencies": {
+    "chart.js": "^3.5.1"
+  }
+}

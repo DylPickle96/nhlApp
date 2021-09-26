@@ -61,27 +61,23 @@ var twentyTwentySeason = map[string]map[string]monthsRange{
 		},
 		"Nov": {
 			beginnning: 1,
-			ending:     20,
+			ending:     30,
 		},
 		"Dec": {
-			beginnning: 0,
-			ending:     0,
+			beginnning: 1,
+			ending:     31,
 		},
 		"Jan": {
-			beginnning: 0,
-			ending:     0,
+			beginnning: 1,
+			ending:     31,
 		},
 		"Feb": {
-			beginnning: 0,
-			ending:     0,
+			beginnning: 1,
+			ending:     29,
 		},
 		"Mar": {
-			beginnning: 0,
-			ending:     0,
-		},
-		"Apr": {
-			beginnning: 0,
-			ending:     0,
+			beginnning: 1,
+			ending:     11,
 		},
 	},
 }
@@ -179,14 +175,10 @@ func main() {
 	if err != nil {
 		log.Printf("WARNING: %v", err)
 	}
-	// HTMLFile, err := os.Open("dylan.html")
-	// if err != nil {
-	// 	panic(err)
-	// }
 }
 
-// fileParser main function to handle the parsing of the HTML file which are trying to scrape
-func fileParser(HTMLFile []byte, season, month, day *string) {
+// fileParser - main function to handle the parsing of the HTML file which are trying to scrape
+func fileParser(HTMLFile []byte, season, month, day string) {
 	reader := bytes.NewReader(HTMLFile)
 	tokenizer := html.NewTokenizer(reader)
 	TDCount := 0
@@ -217,7 +209,7 @@ func fileParser(HTMLFile []byte, season, month, day *string) {
 				if innerToken == html.TextToken {
 					textValue = strings.TrimSpace((string)(tokenizer.Text()))
 				}
-				tr = parsePostion(&TDCount, &textValue, tr)
+				tr = parsePostion(TDCount, textValue, tr)
 				// append if this has been reset. Means we have reached the end of the row
 				if TDCount == 10 {
 					teamRecords = append(teamRecords, tr)
@@ -248,45 +240,46 @@ func fileParser(HTMLFile []byte, season, month, day *string) {
 	// this poor practice but the more important thing here is that it works
 	teamRecords = removeRecord(teamRecords, 0)
 	dailyRecord.TeamRecords = teamRecords
-	dailyRecord.Season = *season
-	dailyRecord.Month = *month
-	dailyRecord.Day = *day
+	dailyRecord.Season = season
+	dailyRecord.Month = month
+	dailyRecord.Day = day
 	insertDailyRecord(dailyRecord, season)
+	writeJSONFile(dailyRecord, season, month, day)
 }
 
-// parsePostion parse position assigns the value for that given position to the coorsponding teamRecord value
-func parsePostion(TDCount *int, value *string, teamRecord teamRecord) teamRecord {
-	switch count := *TDCount; count {
+// parsePostion - parse position assigns the value for that given position to the coorsponding teamRecord value
+func parsePostion(TDCount int, value string, teamRecord teamRecord) teamRecord {
+	switch count := TDCount; count {
 	case 1:
-		winsLoses := strings.Split(*value, "-")
+		winsLoses := strings.Split(value, "-")
 		if len(winsLoses) == 3 {
 			teamRecord.Wins = winsLoses[0]
 			teamRecord.Loses = winsLoses[1]
 			teamRecord.Overtime = winsLoses[2]
 		}
 	case 2:
-		teamRecord.ROW = *value
+		teamRecord.ROW = value
 	case 3:
-		teamRecord.Points = *value
+		teamRecord.Points = value
 	case 4:
-		teamRecord.GoalsFor = *value
+		teamRecord.GoalsFor = value
 	case 5:
-		teamRecord.GoalsAgainst = *value
+		teamRecord.GoalsAgainst = value
 	case 6:
-		teamRecord.Home = *value
+		teamRecord.Home = value
 	case 7:
-		teamRecord.Away = *value
+		teamRecord.Away = value
 	case 8:
-		teamRecord.DivisionRecord = *value
+		teamRecord.DivisionRecord = value
 	case 9:
-		teamRecord.ConferenceRecord = *value
+		teamRecord.ConferenceRecord = value
 	case 10:
-		teamRecord.ICF = *value
+		teamRecord.ICF = value
 	}
 	return teamRecord
 }
 
-// validateData checks if any of the values in a record are an empty string. This process can generate some blank records so we use this function to remove them
+// validateData - checks if any of the values in a record are an empty string. This process can generate some blank records so we use this function to remove them
 func validateData(teamRecords []teamRecord) []teamRecord {
 	for i, tr := range teamRecords {
 		if tr.Wins == "" {
@@ -341,7 +334,7 @@ func validateData(teamRecords []teamRecord) []teamRecord {
 	return teamRecords
 }
 
-// getSeasonData gets season data from the shrpsports website
+// getSeasonData - gets season data from the shrpsports website
 func getSeasonData(currentSeason map[string]map[string]monthsRange) error {
 	for season, months := range currentSeason {
 		for month, monthRange := range months {
@@ -358,48 +351,46 @@ func getSeasonData(currentSeason map[string]map[string]monthsRange) error {
 					return fmt.Errorf("could not read response body from url: %s. Error: %v", fmt.Sprintf("http://www.shrpsports.com/nhl/stand.php?link=Y&season=%s&divcnf=div&month=%s&date=%d", season, month, i), err)
 				}
 				day := strconv.FormatInt(int64(i), 10)
-				fileParser(body, &season, &month, &day)
+				fileParser(body, season, month, day)
 			}
 		}
 	}
 	return nil
 }
 
-// insertDailyRecord insert daily records into the mongoDB collection
-func insertDailyRecord(dailyRecord dailyRecord, season *string) {
-	collection := client.Database("nhlRecords").Collection(seasonNumericName[*season] + "Season")
+// insertDailyRecord - insert daily records into the mongoDB collection
+func insertDailyRecord(dailyRecord dailyRecord, season string) {
+	collection := client.Database("nhlRecords").Collection(seasonNumericName[season] + "Season")
 	insertRecord, err := collection.InsertOne(context.Background(), dailyRecord)
 	if err != nil {
-		log.Printf("WARNING: could not insert record in collection %s-season.Error: %v", *season, err)
+		log.Printf("WARNING: could not insert record in collection %s-season.Error: %v", season, err)
 		return
 	}
 	log.Println("insertRecord ID: ", insertRecord.InsertedID)
 }
 
-func writeJSONFile(dailyRecord dailyRecord, season, month, day *string) {
+func writeJSONFile(dailyRecord dailyRecord, season, month, day string) {
 	JSONBytes, err := json.MarshalIndent(dailyRecord, "", "  ")
 	if err != nil {
 		log.Printf("WARNING: could not marshal slice of teamRecord into JSON. Error: %v", err)
 	}
-	err = os.MkdirAll(fmt.Sprintf("JSON/%s", *season), 0755)
+	err = os.MkdirAll(fmt.Sprintf("JSON/%s", season), 0755)
 	if err != nil {
-		log.Fatalf("ERROR: could not make the directory path JSON/%s. Error: %v", *season, err)
+		log.Fatalf("ERROR: could not make the directory path JSON/%s. Error: %v", season, err)
 	}
-	err = ioutil.WriteFile(fmt.Sprintf("JSON/%s/%s-%s-%s-record.json", *season, *season, *month, *day), JSONBytes, 0755)
+	err = ioutil.WriteFile(fmt.Sprintf("JSON/%s/%s-%s-%s-record.json", season, season, month, day), JSONBytes, 0755)
 	if err != nil {
 		log.Printf("WARNING: could not write JSON to file. Error: %v", err)
 	}
 }
 
-// removeRecord removes a record from the slice of team records that are scraped from the website
+// removeRecord - removes a record from the slice of team records that are scraped from the website
 func removeRecord(teamRecords []teamRecord, index int) []teamRecord {
-	// fmt.Println("DEBUG: index: ", index)
-	// fmt.Printf("DEBUG: teamRecord: %+v\n", teamRecords[index])
 	teamRecords = append(teamRecords[:index], teamRecords[index+1:]...)
 	return teamRecords
 }
 
-// includesCity checks if the passed in value is contained with the list of cities
+// includesCity - checks if the passed in value is contained with the list of cities
 func includesCity(value string) bool {
 	for _, city := range nhlCities {
 		if value == city {

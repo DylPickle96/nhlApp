@@ -10,10 +10,10 @@ import (
 
 	"github.com/julienschmidt/httprouter"
 	"go.mongodb.org/mongo-driver/bson"
-
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.mongodb.org/mongo-driver/mongo/readpref"
+
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type dailyRecord struct {
@@ -56,13 +56,13 @@ func init() {
 	defer cancelFunc()
 	client, err = mongo.Connect(ctx, options.Client().ApplyURI("mongodb://localhost:27017"))
 	if err != nil {
-		log.Fatalf("ERROR: Could not connect to the mongo database. Error: %v", err)
+		log.Fatalf("ERROR: init(): Could not connect to the mongo database. Error: %v", err)
 	}
 	ctx, cancelFunc = context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancelFunc()
 	err = client.Ping(ctx, readpref.Primary())
 	if err != nil {
-		log.Fatalf("ERROR: could not ping the mongo database. Error: %v", err)
+		log.Fatalf("ERROR: init(): could not ping the mongo database. Error: %v", err)
 	}
 }
 
@@ -70,14 +70,15 @@ func main() {
 	handleRequests()
 }
 
+// getLeagueRecord - obtains the entire leagues record for a daily in a season
 func getLeagueRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	var dailyRecord dailyRecord
 	filter := bson.D{{"month", ps.ByName("month")}, {"day", ps.ByName("day")}}
 	collection := client.Database("nhlRecords").Collection(seasonNumericName[ps.ByName("season")] + "Season")
 	err := collection.FindOne(context.Background(), filter).Decode(&dailyRecord)
 	if err != nil {
+		log.Printf("ERROR: getLeagueRecord(): Cannot get daily league record. Error: %v", err)
 		w.WriteHeader(500)
-		w.Write([]byte("could not get record from database"))
 		return
 	}
 	teamRecords, err := bubbleSort(dailyRecord.TeamRecords)
@@ -100,6 +101,7 @@ func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func handleRequests() {
 	myRouter := httprouter.New()
 	myRouter.GET("/league/:season/:month/:day", getLeagueRecord)
+	myRouter.ServeFiles("/webapp/*filepath", http.Dir("../../webApp/v1/"))
 	log.Println("INFO: Started http listener")
 	log.Fatal(http.ListenAndServe(":8081", &server{myRouter}))
 }
