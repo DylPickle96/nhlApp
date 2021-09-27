@@ -90,7 +90,7 @@ var (
 					},
 					month{
 						name:      "Feb",
-						beginning: 2,
+						beginning: 1,
 						ending:    29,
 					},
 					month{
@@ -187,7 +187,7 @@ func getSeasonRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 	for _, season := range nhlSeasons.seasons {
 		if season.name == ps.ByName("season") {
 			for _, month := range season.months {
-				for i := month.beginning; i < month.ending; i++ {
+				for i := month.beginning; i <= month.ending; i++ {
 					r, err := retrieveDailyLeagueRecord(season.name, month.name, strconv.FormatInt(int64(i), 10))
 					if err != nil {
 						log.Printf("ERROR: getSeasonRecord(): cannot retrieve daily record for season: %s month: %s. day: %d. Error: %v", season.name, month.name, i, err)
