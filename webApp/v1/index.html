@@ -7,14 +7,17 @@
 <script src="https://cdn.jsdelivr.net/npm/moment@2.27.0"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment@0.1.1"></script>
 <body>
-<div id="container">
-    <canvas id="myChart"></canvas>
+<div>
+    <div id="selectContainer">
+        <select id="teamSelection">
+            <option value="reset">Choose a team</option>
+        </select>
+    </div>
+    <div id="container">
+        <canvas id="myChart"></canvas>
+    </div>
 </div>
 <script src="index.js"></script>
 <style>
-    #container {
-        position: absolute;
-        top: 0; right: 0; bottom: 0; left: 0;
-    }
 </style>
 </body>

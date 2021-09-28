@@ -225,7 +225,6 @@ function getSeasonData(season) {
 }
 
 function createDataSet(seasonData, season) {
-    addTeamLogo()
     const currentTeamPoints = {}
     for (const dailyRecord of seasonData.dailyRecords) {
         for (const teamRecord of dailyRecord.teamRecords) {
@@ -289,4 +288,36 @@ function addTeamLogo() {
     }
 }
 
+function addTeamsSelect() {
+    const teamSelect = document.getElementById("teamSelection")
+    for (dataSet of dataSets) {
+        const option = document.createElement("option")
+        option.value = dataSet.label
+        option.text = dataSet.label
+        teamSelect.appendChild(option)
+    }
+}
+
+function addSelectionChangeHandler() {
+    const teamSelect = document.getElementById("teamSelection")
+    teamSelect.addEventListener('change', () => {
+        for (dataset of NHLStandingsChart.data.datasets) {
+            if (teamSelect.value === 'reset') {
+                dataset.hidden = false
+            } else if (dataset.label !== teamSelect.value) {
+                dataset.hidden = true
+            } else {
+                // needed to undo previous selection
+                dataset.hidden = false
+            }
+        }
+        console.log(NHLStandingsChart.data.datasets)
+        console.log(teamSelect.value)
+        NHLStandingsChart.update()
+    }) 
+}
+
+addTeamLogo()
+addTeamsSelect()
+addSelectionChangeHandler()
 getSeasonData(2019)
