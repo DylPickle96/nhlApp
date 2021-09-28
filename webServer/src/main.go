@@ -126,7 +126,7 @@ var (
 					month{
 						name:      "Feb",
 						beginning: 2,
-						ending:    29,
+						ending:    28,
 					},
 					month{
 						name:      "Mar",
