@@ -1,0 +1,20 @@
+{
+  "name": "nhl-web-app",
+  "version": "1.0.0",
+  "description": "Web app for the nhl standing chart",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack"
+  },
+  "author": "dsmith",
+  "license": "ISC",
+  "devDependencies": {
+    "webpack": "^5.56.0",
+    "webpack-cli": "^4.8.0"
+  },
+  "dependencies": {
+    "chart.js": "^3.5.1",
+    "chartjs-adapter-moment": "^1.0.0",
+    "moment": "^2.29.1"
+  }
+}

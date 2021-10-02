@@ -1,3 +1,7 @@
+import { Chart, registerables } from 'chart.js';
+import 'chartjs-adapter-moment';
+Chart.register(...registerables);
+
 const monthNameLookup = {
     "Oct": "October",
     "Nov": "November",
@@ -280,7 +284,7 @@ function createDataSet(seasonData, season) {
 }
 
 function addTeamLogo() {
-    for (dataSet of dataSets) {
+    for (const dataSet of dataSets) {
         const image = new Image()
         image.src = `images/${dataSet.label}.png`
         dataSet.pointStyle = image
@@ -290,7 +294,7 @@ function addTeamLogo() {
 
 function addTeamsSelect() {
     const teamSelect = document.getElementById("teamSelection")
-    for (dataSet of dataSets) {
+    for (const dataSet of dataSets) {
         const option = document.createElement("option")
         option.value = dataSet.label
         option.text = dataSet.label
@@ -301,7 +305,7 @@ function addTeamsSelect() {
 function addSelectionChangeHandler() {
     const teamSelect = document.getElementById("teamSelection")
     teamSelect.addEventListener('change', () => {
-        for (dataset of NHLStandingsChart.data.datasets) {
+        for (const dataset of NHLStandingsChart.data.datasets) {
             if (teamSelect.value === 'reset') {
                 dataset.hidden = false
             } else if (dataset.label !== teamSelect.value) {
@@ -311,8 +315,6 @@ function addSelectionChangeHandler() {
                 dataset.hidden = false
             }
         }
-        console.log(NHLStandingsChart.data.datasets)
-        console.log(teamSelect.value)
         NHLStandingsChart.update()
     }) 
 }
@@ -320,4 +322,4 @@ function addSelectionChangeHandler() {
 addTeamLogo()
 addTeamsSelect()
 addSelectionChangeHandler()
-getSeasonData(2019)
+getSeasonData(2020)

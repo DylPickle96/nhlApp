@@ -1,2 +1,3 @@
-v1/node_modules
-v1/package-lock.json
+node_modules
+package-lock.json
+dist/bundle.js

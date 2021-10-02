@@ -197,6 +197,7 @@ func getSeasonRecord(w http.ResponseWriter, r *http.Request, ps httprouter.Param
 					sr.DailyRecords = append(sr.DailyRecords, *r)
 				}
 			}
+			break
 		}
 	}
 	err := json.NewEncoder(w).Encode(sr)
@@ -237,7 +238,7 @@ func handleRequests() {
 	myRouter := httprouter.New()
 	myRouter.GET("/daily/:season/:month/:day", getDailyLeagueRecord)
 	myRouter.GET("/season/:season", getSeasonRecord)
-	myRouter.ServeFiles("/webapp/*filepath", http.Dir("../../webApp/v1/"))
+	myRouter.ServeFiles("/webapp/*filepath", http.Dir("../../webApp/dist/"))
 	log.Println("INFO: Started http listener")
 	log.Fatal(http.ListenAndServe(":8081", &server{myRouter}))
 }
