@@ -4,13 +4,21 @@
 <title>Nhl Standings</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <body>
-    <div>
-        <div id="selectContainer">
-            <select id="teamSelection">
-                <option value="reset">Choose a team</option>
-            </select>
+    <div class="container-fluid">
+        <div class="row" style="padding-top: 20px;">
+            <div class="col md-3">
+                <select id="teamSelection" class="form-select">
+                    <option value="reset">Choose a team</option>
+                </select>
+            </div>
+            <div class="col md-3">
+                <select id="seasonSelection" class="form-select">
+                    <option>Choose a season</option>
+                </select>
+            </div>
+            <div class="col md-3"></div>
         </div>
-        <div id="container">
+        <div class="row" style="padding-top: 20px;">
             <canvas id="myChart"></canvas>
         </div>
     </div>

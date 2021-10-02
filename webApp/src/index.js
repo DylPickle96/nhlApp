@@ -1,16 +1,8 @@
 import { Chart, registerables } from 'chart.js';
 import 'chartjs-adapter-moment';
+import 'bootstrap';
+import 'bootstrap/dist/css/bootstrap.min.css';
 Chart.register(...registerables);
-
-const monthNameLookup = {
-    "Oct": "October",
-    "Nov": "November",
-    "Dec": "December",
-    "Jan": "January",
-    "Feb": "February",
-    "Mar": "March",
-    "Apr": "April"
-}
 
 const monthIntegerLookup = {
     "Oct": 9,
@@ -22,7 +14,7 @@ const monthIntegerLookup = {
     "Apr": 3
 }
 
-const dataSets = [
+const teamDataSets = [
     {
         label: 'Anaheim',
         data: [],
@@ -217,9 +209,12 @@ const dataSets = [
     }
 ]
 
+const seasons = [2022, 2021, 2020, 2019, 2018, 2017, 2016, 2015, 2014, 2013, 2012, 2011, 2010, 2009, 2008, 2007, 2006, 2005, 2004, 2003, 2002, 2001]
+
 // NHLStandingsChart - object which represents the NHL standings Chart
 let NHLStandingsChart
 
+// getSeasonData - Calls our API to fetch the season's data
 function getSeasonData(season) {
     fetch(`http://localhost:8081/season/${season}`)
     .then(r => r.json())
@@ -228,7 +223,9 @@ function getSeasonData(season) {
     })
 }
 
+// createDataSet - creates the dataset for each by iterating over all the daily records and matching them to the correct team
 function createDataSet(seasonData, season) {
+    resetTeamDataPoints()
     const currentTeamPoints = {}
     for (const dailyRecord of seasonData.dailyRecords) {
         for (const teamRecord of dailyRecord.teamRecords) {
@@ -237,7 +234,7 @@ function createDataSet(seasonData, season) {
                 continue
             }
             currentTeamPoints[teamRecord.teamName] = teamRecord.points
-            const teamIndex = dataSets.findIndex(team => {
+            const teamIndex = teamDataSets.findIndex(team => {
                 return team.label === teamRecord.teamName
             })
             let date
@@ -250,15 +247,15 @@ function createDataSet(seasonData, season) {
                 'x': date,
                 'y': teamRecord.points
             }
-            dataSets[teamIndex].data.push(dataPoint)
+            teamDataSets[teamIndex].data.push(dataPoint)
         }
     }
-
+    // renders chart
     const ctx = document.getElementById('myChart');
     NHLStandingsChart =  new Chart(ctx, {
         type: 'line',
         data: {
-            datasets: dataSets
+            datasets: teamDataSets
         },
         options: {
             scales: {
@@ -283,8 +280,9 @@ function createDataSet(seasonData, season) {
     });
 }
 
+// addTeamLogo - Called to create an 'image' in the document for each team. This HTML element is then used as the label of each data point
 function addTeamLogo() {
-    for (const dataSet of dataSets) {
+    for (const dataSet of teamDataSets) {
         const image = new Image()
         image.src = `images/${dataSet.label}.png`
         dataSet.pointStyle = image
@@ -292,9 +290,10 @@ function addTeamLogo() {
     }
 }
 
+// addTeamsSelect - adds the teams from the declared data object to the selection element
 function addTeamsSelect() {
     const teamSelect = document.getElementById("teamSelection")
-    for (const dataSet of dataSets) {
+    for (const dataSet of teamDataSets) {
         const option = document.createElement("option")
         option.value = dataSet.label
         option.text = dataSet.label
@@ -302,7 +301,19 @@ function addTeamsSelect() {
     }
 }
 
-function addSelectionChangeHandler() {
+// addSeasonSelect - adds the seasons from the declared data array to the selection element
+function addSeasonSelect() {
+    const seasonSelect = document.getElementById("seasonSelection")
+    for (const season of seasons) {
+        const option = document.createElement("option")
+        option.value = season
+        option.text = `${season-1} - ${season}`
+        seasonSelect.appendChild(option)
+    }
+}
+
+// addTeamSelectionChangeHandler - adds the event listener to the team selection
+function addTeamSelectionChangeHandler() {
     const teamSelect = document.getElementById("teamSelection")
     teamSelect.addEventListener('change', () => {
         for (const dataset of NHLStandingsChart.data.datasets) {
@@ -319,7 +330,25 @@ function addSelectionChangeHandler() {
     }) 
 }
 
+// addSeasonSelectionChangeHandler - adds the event listener to the team selection
+function addSeasonSelectionChangeHandler() {
+    const seasonSelect = document.getElementById("seasonSelection")
+    seasonSelect.addEventListener('change', () => {
+        NHLStandingsChart.destroy()
+        getSeasonData(seasonSelect.value)
+    })
+}
+
+// resetTeamDataPoints - resets the team data points when a new season is selected
+function resetTeamDataPoints() {
+    for (const teamData of teamDataSets) {
+        teamData.data = []
+    }
+}
+
 addTeamLogo()
 addTeamsSelect()
-addSelectionChangeHandler()
+addSeasonSelect()
+addTeamSelectionChangeHandler()
+addSeasonSelectionChangeHandler()
 getSeasonData(2020)
