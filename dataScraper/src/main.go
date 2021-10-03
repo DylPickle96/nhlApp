@@ -899,6 +899,7 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 	var teamRecords []teamRecord
 	var dailyRecord dailyRecord
 	for {
+		fmt.Printf("Season: %s month: %s, day: %s.", season, month, day)
 		nextToken := tokenizer.Next()
 		if nextToken == html.StartTagToken {
 			token := tokenizer.Token()
@@ -928,6 +929,10 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 					teamRecords = append(teamRecords, tr)
 					TDCount = 0
 					continue
+				} else if s == 2013 && TDCount == 8 {
+					teamRecords = append(teamRecords, tr)
+					TDCount = 0
+					continue
 				} else if TDCount == 10 {
 					teamRecords = append(teamRecords, tr)
 					TDCount = 0
@@ -951,7 +956,6 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 			break
 		}
 	}
-	fmt.Println(season, month, day)
 	if len(teamRecords) == 1 {
 		return
 	}
@@ -999,6 +1003,30 @@ func parsePostion(TDCount int, season int64, value string, teamRecord teamRecord
 			teamRecord.ConferenceRecord = value
 		case 9:
 			teamRecord.ICF = value
+		}
+	} else if season == 2013 {
+		switch count := TDCount; count {
+		case 1:
+			winsLoses := strings.Split(value, "-")
+			if len(winsLoses) == 3 {
+				teamRecord.Wins = winsLoses[0]
+				teamRecord.Loses = winsLoses[1]
+				teamRecord.Overtime = winsLoses[2]
+			}
+		case 2:
+			teamRecord.ROW = value
+		case 3:
+			teamRecord.Points = value
+		case 4:
+			teamRecord.GoalsFor = value
+		case 5:
+			teamRecord.GoalsAgainst = value
+		case 6:
+			teamRecord.Home = value
+		case 7:
+			teamRecord.Away = value
+		case 8:
+			teamRecord.DivisionRecord = value
 		}
 	} else {
 		switch count := TDCount; count {
@@ -1080,11 +1108,11 @@ func validateData(teamRecords []teamRecord, season int64) []teamRecord {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
-		if tr.ConferenceRecord == "" {
+		if season != 2013 && tr.ConferenceRecord == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
-		if tr.ICF == "" {
+		if season != 2013 && tr.ICF == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
@@ -1096,7 +1124,7 @@ func validateData(teamRecords []teamRecord, season int64) []teamRecord {
 func getSeasonsData() error {
 	for _, season := range nhlSeasons.seasons {
 		s, _ := strconv.ParseInt(season.name, 10, 64)
-		if s != 2004 {
+		if s != 2013 {
 			continue
 		}
 		for _, month := range season.months {
