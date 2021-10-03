@@ -893,6 +893,8 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 	reader := bytes.NewReader(HTMLFile)
 	tokenizer := html.NewTokenizer(reader)
 	TDCount := 0
+	// season numeric
+	s, _ := strconv.ParseInt(season, 10, 64)
 	var tr teamRecord
 	var teamRecords []teamRecord
 	var dailyRecord dailyRecord
@@ -920,7 +922,6 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 				if innerToken == html.TextToken {
 					textValue = strings.TrimSpace((string)(tokenizer.Text()))
 				}
-				s, _ := strconv.ParseInt(season, 10, 64)
 				tr = parsePostion(TDCount, s, textValue, tr)
 				// append if this has been reset. Means we have reached the end of the row
 				if s <= 2010 && TDCount == 9 {
@@ -951,12 +952,10 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 		}
 	}
 	fmt.Println(season, month, day)
-	fmt.Println("len(teamRecords) == 0: ", len(teamRecords) == 0)
-	fmt.Printf("teamRecords: %+v\n", teamRecords)
 	if len(teamRecords) == 1 {
 		return
 	}
-	teamRecords = validateData(teamRecords)
+	teamRecords = validateData(teamRecords, s)
 	// validate data function almost works the way it should. It ends up ignoring one of the two bad records at the beginnning of the slice
 	// so the bad solution right now is call removeRecords here as well on the zeroth index
 	// this poor practice but the more important thing here is that it works
@@ -975,7 +974,11 @@ func parsePostion(TDCount int, season int64, value string, teamRecord teamRecord
 		switch count := TDCount; count {
 		case 1:
 			winsLoses := strings.Split(value, "-")
-			if len(winsLoses) == 3 {
+			if len(winsLoses) == 4 && season <= 2004 {
+				teamRecord.Wins = winsLoses[0]
+				teamRecord.Loses = winsLoses[1]
+				teamRecord.Overtime = winsLoses[2] + winsLoses[3]
+			} else if len(winsLoses) == 3 {
 				teamRecord.Wins = winsLoses[0]
 				teamRecord.Loses = winsLoses[1]
 				teamRecord.Overtime = winsLoses[2]
@@ -1031,8 +1034,12 @@ func parsePostion(TDCount int, season int64, value string, teamRecord teamRecord
 }
 
 // validateData - checks if any of the values in a record are an empty string. This process can generate some blank records so we use this function to remove them
-func validateData(teamRecords []teamRecord) []teamRecord {
+func validateData(teamRecords []teamRecord, season int64) []teamRecord {
 	for i, tr := range teamRecords {
+		if tr.TeamName == "" {
+			teamRecords = removeRecord(teamRecords, i)
+			continue
+		}
 		if tr.Wins == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
@@ -1045,7 +1052,7 @@ func validateData(teamRecords []teamRecord) []teamRecord {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
-		if tr.ROW == "" {
+		if season > 2010 && tr.ROW == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
@@ -1088,7 +1095,8 @@ func validateData(teamRecords []teamRecord) []teamRecord {
 // getSeasonsData - gets season data from the shrpsports website
 func getSeasonsData() error {
 	for _, season := range nhlSeasons.seasons {
-		if season.name == "2013" {
+		s, _ := strconv.ParseInt(season.name, 10, 64)
+		if s != 2004 {
 			continue
 		}
 		for _, month := range season.months {
