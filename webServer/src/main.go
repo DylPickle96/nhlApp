@@ -140,12 +140,700 @@ var (
 					},
 				},
 			},
+			season{
+				name: "2018",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 4,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    8,
+					},
+				},
+			},
+			season{
+				name: "2017",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 12,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    9,
+					},
+				},
+			},
+			season{
+				name: "2016",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 7,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    10,
+					},
+				},
+			},
+			season{
+				name: "2015",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 8,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    11,
+					},
+				},
+			},
+			season{
+				name: "2014",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    13,
+					},
+				},
+			},
+			season{
+				name: "2013",
+				months: []month{
+					month{
+						name:      "Jan",
+						beginning: 19,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    28,
+					},
+				},
+			},
+			season{
+				name: "2012",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 6,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    7,
+					},
+				},
+			},
+			season{
+				name: "2011",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 7,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    10,
+					},
+				},
+			},
+			season{
+				name: "2010",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    11,
+					},
+				},
+			},
+			season{
+				name: "2009",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 4,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    12,
+					},
+				},
+			},
+			season{
+				name: "2008",
+				months: []month{
+					month{
+						name:      "Sep",
+						beginning: 29,
+						ending:    30,
+					},
+					month{
+						name:      "Oct",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    6,
+					},
+				},
+			},
+			season{
+				name: "2007",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 4,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    11,
+					},
+				},
+			},
+			season{
+				name: "2006",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 5,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    18,
+					},
+				},
+			},
+			season{
+				name: "2004",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 8,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    4,
+					},
+				},
+			},
+			season{
+				name: "2003",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 9,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    6,
+					},
+				},
+			},
+			season{
+				name: "2002",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 3,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    14,
+					},
+				},
+			},
+			season{
+				name: "2001",
+				months: []month{
+					month{
+						name:      "Oct",
+						beginning: 4,
+						ending:    31,
+					},
+					month{
+						name:      "Nov",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "Dec",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Jan",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 2,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    8,
+					},
+				},
+			},
 		},
 	}
 	// seasonNumericName - required as I cannot use numeric value in a Mongodb collection name...
 	seasonNumericName = map[string]string{
 		"2020": "twentyTwenty",
 		"2019": "twentyNineteen",
+		"2018": "twentyEighteen",
+		"2017": "twentySeventeen",
+		"2016": "twentySixteen",
+		"2015": "twentyFifteen",
+		"2014": "twentyFourteen",
+		"2013": "twentyThirteen",
+		"2012": "twentyTwelve",
+		"2011": "twentyEleven",
+		"2010": "twentyTen",
+		"2009": "twoThousandAndNine",
+		"2008": "twoThousandAndEight",
+		"2007": "twoThousandAndSeven",
+		"2006": "twoThousandAndSix",
+		"2005": "twoThousandAndFive",
+		"2004": "twoThousandAndFour",
+		"2003": "twoThousandAndThree",
+		"2002": "twoThousandAndTwo",
+		"2001": "twoThousandAndOne",
 	}
 )
 
