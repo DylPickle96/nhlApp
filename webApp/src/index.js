@@ -28,6 +28,18 @@ const teamDataSets = [
         borderColor: 'rgb(140, 38, 51)',
     },
     {
+        label: 'Atlanta',
+        data: [],
+        fill: false,
+        borderColor: 'rgb(92,136,218)',
+    },
+    {
+        label: 'Phoenix',
+        data: [],
+        fill: false,
+        borderColor: 'rgb(140, 38, 51)',
+    },
+    {
         label: 'Boston',
         data: [],
         fill: false,

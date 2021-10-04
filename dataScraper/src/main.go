@@ -90,9 +90,41 @@ var (
 		"San Jose",
 		"Los Angeles",
 		"Seattle",
+		"Atlanta",
+		"Phoenix",
 	}
 	nhlSeasons = seasons{
 		seasons: []season{
+			season{
+				name: "2021",
+				months: []month{
+					month{
+						name:      "Jan",
+						beginning: 13,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 1,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "May",
+						beginning: 1,
+						ending:    18,
+					},
+				},
+			},
 			season{
 				name: "2020",
 				months: []month{
@@ -274,7 +306,7 @@ var (
 					month{
 						name:      "Feb",
 						beginning: 2,
-						ending:    28,
+						ending:    29,
 					},
 					month{
 						name:      "Mar",
@@ -419,7 +451,7 @@ var (
 					month{
 						name:      "Feb",
 						beginning: 2,
-						ending:    28,
+						ending:    29,
 					},
 					month{
 						name:      "Mar",
@@ -584,7 +616,7 @@ var (
 					month{
 						name:      "Feb",
 						beginning: 2,
-						ending:    28,
+						ending:    29,
 					},
 					month{
 						name:      "Mar",
@@ -704,7 +736,7 @@ var (
 					month{
 						name:      "Feb",
 						beginning: 2,
-						ending:    28,
+						ending:    29,
 					},
 					month{
 						name:      "Mar",
@@ -842,6 +874,7 @@ var (
 	}
 	// seasonNumericName - required as I cannot use numeric value in a Mongodb collection name...
 	seasonNumericName = map[string]string{
+		"2021": "twentyTwentyOne",
 		"2020": "twentyTwenty",
 		"2019": "twentyNineteen",
 		"2018": "twentyEighteen",
@@ -898,8 +931,8 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 	var tr teamRecord
 	var teamRecords []teamRecord
 	var dailyRecord dailyRecord
+	fmt.Printf("Season: %s month: %s, day: %s.\n", season, month, day)
 	for {
-		fmt.Printf("Season: %s month: %s, day: %s.", season, month, day)
 		nextToken := tokenizer.Next()
 		if nextToken == html.StartTagToken {
 			token := tokenizer.Token()
@@ -933,6 +966,10 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 					teamRecords = append(teamRecords, tr)
 					TDCount = 0
 					continue
+				} else if s == 2021 && TDCount == 7 {
+					teamRecords = append(teamRecords, tr)
+					TDCount = 0
+					continue
 				} else if TDCount == 10 {
 					teamRecords = append(teamRecords, tr)
 					TDCount = 0
@@ -960,6 +997,9 @@ func fileParser(HTMLFile []byte, season, month, day string) {
 		return
 	}
 	teamRecords = validateData(teamRecords, s)
+	if len(teamRecords) == 0 {
+		return
+	}
 	// validate data function almost works the way it should. It ends up ignoring one of the two bad records at the beginnning of the slice
 	// so the bad solution right now is call removeRecords here as well on the zeroth index
 	// this poor practice but the more important thing here is that it works
@@ -1027,6 +1067,28 @@ func parsePostion(TDCount int, season int64, value string, teamRecord teamRecord
 			teamRecord.Away = value
 		case 8:
 			teamRecord.DivisionRecord = value
+		}
+	} else if season == 2021 {
+		switch count := TDCount; count {
+		case 1:
+			winsLoses := strings.Split(value, "-")
+			if len(winsLoses) == 3 {
+				teamRecord.Wins = winsLoses[0]
+				teamRecord.Loses = winsLoses[1]
+				teamRecord.Overtime = winsLoses[2]
+			}
+		case 2:
+			teamRecord.ROW = value
+		case 3:
+			teamRecord.Points = value
+		case 4:
+			teamRecord.GoalsFor = value
+		case 5:
+			teamRecord.GoalsAgainst = value
+		case 6:
+			teamRecord.Home = value
+		case 7:
+			teamRecord.Away = value
 		}
 	} else {
 		switch count := TDCount; count {
@@ -1104,15 +1166,15 @@ func validateData(teamRecords []teamRecord, season int64) []teamRecord {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
-		if tr.DivisionRecord == "" {
+		if season != 2021 && tr.DivisionRecord == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
-		if season != 2013 && tr.ConferenceRecord == "" {
+		if season != 2013 && season != 2021 && tr.ConferenceRecord == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
-		if season != 2013 && tr.ICF == "" {
+		if season != 2013 && season != 2021 && tr.ICF == "" {
 			teamRecords = removeRecord(teamRecords, i)
 			continue
 		}
@@ -1124,7 +1186,7 @@ func validateData(teamRecords []teamRecord, season int64) []teamRecord {
 func getSeasonsData() error {
 	for _, season := range nhlSeasons.seasons {
 		s, _ := strconv.ParseInt(season.name, 10, 64)
-		if s != 2013 {
+		if s != 2021 {
 			continue
 		}
 		for _, month := range season.months {

@@ -66,6 +66,36 @@ var (
 	nhlSeasons = seasons{
 		seasons: []season{
 			season{
+				name: "2021",
+				months: []month{
+					month{
+						name:      "Jan",
+						beginning: 13,
+						ending:    31,
+					},
+					month{
+						name:      "Feb",
+						beginning: 1,
+						ending:    28,
+					},
+					month{
+						name:      "Mar",
+						beginning: 1,
+						ending:    31,
+					},
+					month{
+						name:      "Apr",
+						beginning: 1,
+						ending:    30,
+					},
+					month{
+						name:      "May",
+						beginning: 1,
+						ending:    18,
+					},
+				},
+			},
+			season{
 				name: "2020",
 				months: []month{
 					month{
@@ -814,6 +844,7 @@ var (
 	}
 	// seasonNumericName - required as I cannot use numeric value in a Mongodb collection name...
 	seasonNumericName = map[string]string{
+		"2021": "twentyTwentyOne",
 		"2020": "twentyTwenty",
 		"2019": "twentyNineteen",
 		"2018": "twentyEighteen",
